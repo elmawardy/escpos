@@ -2,11 +2,15 @@ package escpos
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
-	"github.com/qiniu/iconv"
 	"image"
 	"io"
 	"math"
+
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 type Style struct {
@@ -143,26 +147,54 @@ func (e *Escpos) Write(data string) (int, error) {
 	return e.WriteRaw([]byte(data))
 }
 
+func transformBytes(t transform.Transformer, input []byte) ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	writer := transform.NewWriter(buffer, t)
+	_, err := writer.Write(input)
+	if err != nil {
+		return nil, err
+	}
+	writer.Close()
+	return buffer.Bytes(), nil
+}
+
 // WriteGBK writes a string to the printer using GBK encoding
 func (e *Escpos) WriteGBK(data string) (int, error) {
-	cd, err := iconv.Open("gbk", "utf-8")
-	if err != nil {
+
+	// Use simplifiedchinese.GBK encoder
+	encoder := simplifiedchinese.GBK.NewEncoder()
+
+	// Create a transformer writer to perform the encoding
+	transformedData := &bytes.Buffer{}
+	writer := transform.NewWriter(transformedData, encoder)
+	defer writer.Close()
+
+	// Write the UTF-8 data to the transformer writer
+	if _, err := writer.Write([]byte(data)); err != nil {
 		return 0, err
 	}
-	defer cd.Close()
-	gbk := cd.ConvString(data)
-	return e.Write(gbk)
+
+	// Write the transformed GBK data to the given writer
+	return e.Write(string(transformedData.Bytes()))
 }
 
 // WriteWEU writes a string to the printer using Western European encoding
 func (e *Escpos) WriteWEU(data string) (int, error) {
-	cd, err := iconv.Open("cp850", "utf-8")
-	if err != nil {
+	// Use charmap.CodePage850 encoder
+	encoder := charmap.CodePage850.NewEncoder()
+
+	// Create a transformer writer to perform the encoding
+	transformedData := &bytes.Buffer{}
+	writer := transform.NewWriter(transformedData, encoder)
+	defer writer.Close()
+
+	// Write the UTF-8 data to the transformer writer
+	if _, err := writer.Write([]byte(data)); err != nil {
 		return 0, err
 	}
-	defer cd.Close()
-	weu := cd.ConvString(data)
-	return e.Write(weu)
+
+	// Write the transformed CP850 data to the given writer
+	return e.Write(string(transformedData.Bytes()))
 }
 
 // Sets the printer to print Bold text.
