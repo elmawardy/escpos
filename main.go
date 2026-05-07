@@ -470,7 +470,7 @@ func (e *Escpos) Cut() (int, error) {
 
 // Opens the cash drawer. This is usually connected to the printer and gets powered when the printer receives this command.
 // The printer then opens the cash drawer.
-func (e *Escpos) OpenCashDrawer(printer_host string) error {
+func (e *Escpos) OpenCashDrawer() error {
 	// ESC/POS command
 	_, err := e.dst.Write([]byte{27, 112, 0, 25, 250})
 	if err != nil {
