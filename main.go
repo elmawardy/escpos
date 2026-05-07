@@ -3,10 +3,11 @@ package escpos
 import (
 	"bufio"
 	"fmt"
-	"github.com/qiniu/iconv"
 	"image"
 	"io"
 	"math"
+
+	"github.com/qiniu/iconv"
 )
 
 type Style struct {
@@ -434,6 +435,17 @@ func (e *Escpos) MotionUnits(x, y uint8) (int, error) {
 // Feeds the paper to the end and performs a Cut. In the ESC/POS Command Manual there is also PartialCut and FullCut documented, but it does exactly the same.
 func (e *Escpos) Cut() (int, error) {
 	return e.WriteRaw([]byte{gs, 'V', 'A', 0x00})
+}
+
+// Opens the cash drawer. This is usually connected to the printer and gets powered when the printer receives this command.
+// The printer then opens the cash drawer.
+func (e *Escpos) OpenCashDrawer(printer_host string) error {
+	// ESC/POS command
+	_, err := e.dst.Write([]byte{27, 112, 0, 25, 250})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Helpers
