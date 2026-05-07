@@ -476,6 +476,12 @@ func (e *Escpos) OpenCashDrawer() error {
 	if err != nil {
 		return err
 	}
+
+	err = e.dst.Flush()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
