@@ -1,5 +1,5 @@
 module github.com/elmawardy/escpos
 
-go 1.14
+go 1.25.0
 
-require github.com/qiniu/iconv v1.2.0
+require golang.org/x/text v0.36.0
